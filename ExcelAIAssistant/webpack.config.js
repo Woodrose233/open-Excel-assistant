@@ -17,17 +17,21 @@ module.exports = async (env, options) => {
   const dev = options.mode === "development";
   const config = {
     devtool: "source-map",
+    target: ["web", "es5"],
     entry: {
       polyfill: ["core-js/stable", "regenerator-runtime/runtime"],
-      react: ["react", "react-dom"],
-      taskpane: {
-        import: ["./src/taskpane/index.tsx", "./src/taskpane/taskpane.html"],
-        dependOn: "react",
-      },
+      taskpane: ["./src/taskpane/index.tsx", "./src/taskpane/taskpane.html"],
       commands: "./src/commands/commands.ts",
     },
     output: {
       clean: true,
+      environment: {
+        arrowFunction: false,
+        const: false,
+        destructuring: false,
+        forOf: false,
+        module: false,
+      },
     },
     resolve: {
       extensions: [".ts", ".tsx", ".html", ".js"],
@@ -35,16 +39,14 @@ module.exports = async (env, options) => {
     module: {
       rules: [
         {
-          test: /\.ts$/,
+          test: /\.tsx?$/,
           exclude: /node_modules/,
           use: {
             loader: "babel-loader",
+            options: {
+              presets: ["@babel/preset-typescript", "@babel/preset-react", "@babel/preset-env"],
+            },
           },
-        },
-        {
-          test: /\.tsx?$/,
-          exclude: /node_modules/,
-          use: ["ts-loader"],
         },
         {
           test: /\.html$/,
@@ -64,7 +66,8 @@ module.exports = async (env, options) => {
       new HtmlWebpackPlugin({
         filename: "taskpane.html",
         template: "./src/taskpane/taskpane.html",
-        chunks: ["polyfill", "taskpane", "react"],
+        chunks: ["polyfill", "taskpane"],
+        scriptLoading: "blocking",
       }),
       new CopyWebpackPlugin({
         patterns: [
@@ -96,6 +99,9 @@ module.exports = async (env, options) => {
     ],
     devServer: {
       hot: true,
+      client: {
+        overlay: false,
+      },
       headers: {
         "Access-Control-Allow-Origin": "*",
       },

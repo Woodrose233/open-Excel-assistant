@@ -1,16 +1,15 @@
-/* global Excel console */
+/* global Office */
 
 export async function insertText(text: string) {
-  // Write text to the top left cell.
   try {
     await Excel.run(async (context) => {
-      const sheet = context.workbook.worksheets.getActiveWorksheet();
-      const range = sheet.getRange("A1");
+      const range = context.workbook.getSelectedRange();
+      range.insert(Excel.InsertShiftDirection.down);
       range.values = [[text]];
       range.format.autofitColumns();
       await context.sync();
     });
   } catch (error) {
-    console.log("Error: " + error);
+    console.error(error);
   }
 }
